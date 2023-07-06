@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:media_notification/bean/media_config.dart';
 import 'package:media_notification/bean/media_notification_info.dart';
+import 'package:media_notification/bean/notification_config.dart';
 
 import 'media_notification_platform_interface.dart';
 
@@ -18,14 +18,14 @@ class MethodChannelMediaNotification extends MediaNotificationPlatform {
   }
 
   @override
-  Future<bool> updateConfig(MediaConfig config) async {
+  Future<bool> updateConfig(NotificationConfig config) async {
     final result = await methodChannel.invokeMethod<bool>('updateConfig', config.toMap());
     return result ?? false;
   }
 
   @override
   Future<bool> updateNotification(MediaNotificationInfo mediaNotificationInfo) async {
-    final result = await methodChannel.invokeMethod<bool>('mediaNotificationInfo', mediaNotificationInfo.toMap());
+    final result = await methodChannel.invokeMethod<bool>('updateNotification', mediaNotificationInfo.toMap());
     return result ?? false;
   }
 

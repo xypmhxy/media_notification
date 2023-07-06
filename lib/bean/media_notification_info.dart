@@ -8,8 +8,8 @@ class MediaNotificationInfo {
   bool? hasNext;
   bool? hasPre;
   bool? isPlaying;
-  double? duration;
-  double? position;
+  int? duration;
+  int? position;
   double? playSpeed;
   String? imagePath;
   List<int>? imageData;

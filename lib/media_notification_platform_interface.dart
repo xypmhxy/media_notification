@@ -1,5 +1,5 @@
-import 'package:media_notification/bean/media_config.dart';
 import 'package:media_notification/bean/media_notification_info.dart';
+import 'package:media_notification/bean/notification_config.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 import 'media_notification_method_channel.dart';
@@ -29,7 +29,7 @@ abstract class MediaNotificationPlatform extends PlatformInterface {
     throw UnimplementedError('platformVersion() has not been implemented.');
   }
 
-  Future<bool> updateConfig(MediaConfig config);
+  Future<bool> updateConfig(NotificationConfig config);
 
   Future<bool> updateNotification(MediaNotificationInfo mediaNotificationInfo);
 

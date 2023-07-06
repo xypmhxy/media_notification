@@ -16,7 +16,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-
+  video_player: ^2.7.0
   media_notification:
     # When depending on this package from a real application you should use:
     #   media_notification: ^x.y.z
