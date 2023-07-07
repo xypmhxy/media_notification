@@ -6,6 +6,7 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ServiceInfo
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.drawable.Drawable
@@ -17,6 +18,7 @@ import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.RequestOptions
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
+import com.nl.media.notification.MediaServer
 import com.nl.media.notification.bean.MediaNotificationInfo
 import com.nl.media.notification.broadcast.NotificationControlBroadcast.Companion.ACTION_CLICK_PLAY
 import com.nl.media.notification.broadcast.NotificationControlBroadcast.Companion.ACTION_NEXT
@@ -43,7 +45,7 @@ class NotificationUIManager private constructor() {
         }
     }
 
-    fun updateNotification(context: Context, notificationInfo: MediaNotificationInfo) {
+    fun updateNotification(context: MediaServer, notificationInfo: MediaNotificationInfo) {
         updateState(notificationInfo)
         updateNotificationInfo(context, notificationInfo)
     }
@@ -57,7 +59,7 @@ class NotificationUIManager private constructor() {
         )
     }
 
-    private fun updateNotificationInfo(context: Context, notificationInfo: MediaNotificationInfo) {
+    private fun updateNotificationInfo(context: MediaServer, notificationInfo: MediaNotificationInfo) {
         val notificationConfig = NotificationConfigManager.get.getConfig()
 
         if (mNotificationManager == null) {
@@ -152,8 +154,19 @@ class NotificationUIManager private constructor() {
                     .setShowActionsInCompactView(0, 1, 2)
             )
         mNotification = mBuilder!!.build()
-        mNotification?.flags = NotificationCompat.FLAG_SHOW_LIGHTS
-        mNotificationManager?.notify(MEDIA_FOREGROUND_ID, mNotification)
+//        mNotification?.flags = NotificationCompat.FLAG_SHOW_LIGHTS
+//        mNotificationManager?.notify(MEDIA_FOREGROUND_ID, mNotification)
+
+        val result = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            context.startForeground(
+                MEDIA_FOREGROUND_ID, mNotification!!, ServiceInfo
+                    .FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK
+            )
+            true
+        } else {
+            context.startForeground(MEDIA_FOREGROUND_ID, mNotification!!)
+            true
+        }
     }
 
     private fun loadImage(

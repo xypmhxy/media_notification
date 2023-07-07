@@ -1,9 +1,17 @@
 package com.nl.media.notification.media_notification
 
+import android.app.Service
+import android.content.ComponentName
 import android.content.Context
+import android.content.Intent
 import android.content.IntentFilter
+import android.content.ServiceConnection
+import android.os.IBinder
+import android.util.Log
 import androidx.annotation.NonNull
 import com.nl.media.notification.LifeCycleManager
+import com.nl.media.notification.MediaServer
+import com.nl.media.notification.MediaServerBinder
 import com.nl.media.notification.bean.MediaNotificationInfo
 import com.nl.media.notification.broadcast.NotificationControlBroadcast
 import com.nl.media.notification.config.NotificationConfig
@@ -27,12 +35,15 @@ class MediaNotificationPlugin : FlutterPlugin, MethodCallHandler, OnMediaButtonL
     /// when the Flutter Engine is detached from the Activity
     private lateinit var channel: MethodChannel
     private var mContext: Context? = null
-    private var mNotificationReceiver: NotificationControlBroadcast? = null;
+    private var mConnection: ServiceConnection? = null
+    private var mNotificationReceiver: NotificationControlBroadcast? = null
+    private var mService: MediaServer? = null
 
     override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
         mContext = flutterPluginBinding.applicationContext
 
-        channel = MethodChannel(flutterPluginBinding.binaryMessenger, "flutter_media_notification_plugin")
+        channel =
+            MethodChannel(flutterPluginBinding.binaryMessenger, "flutter_media_notification_plugin")
         channel.setMethodCallHandler(this)
 
         MediaSessionUser.get.initMediaSession(mContext!!)
@@ -41,6 +52,7 @@ class MediaNotificationPlugin : FlutterPlugin, MethodCallHandler, OnMediaButtonL
 //        registerNotificationReceiver()
         ScreenUtil.init(mContext!!)
         LifeCycleManager.get.register()
+        bindServer(mContext!!)
 
     }
 
@@ -70,7 +82,7 @@ class MediaNotificationPlugin : FlutterPlugin, MethodCallHandler, OnMediaButtonL
                 }
                 val mediaNotificationInfo =
                     MediaNotificationInfo.fromMap(call.arguments as Map<String, Any>)
-                NotificationUIManager.get.updateNotification(mContext!!, mediaNotificationInfo)
+                NotificationUIManager.get.updateNotification(mService!!, mediaNotificationInfo)
             }
 
             else -> {
@@ -82,6 +94,31 @@ class MediaNotificationPlugin : FlutterPlugin, MethodCallHandler, OnMediaButtonL
     override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
         channel.setMethodCallHandler(null)
         unRegisterNotificationReceiver()
+        if (mConnection != null)
+            binding.applicationContext.unbindService(mConnection!!)
+    }
+
+    /**
+     * 启动服务
+     */
+
+    private fun bindServer(context: Context) {
+        mConnection = object : ServiceConnection {
+            override fun onServiceConnected(p0: ComponentName?, binder: IBinder?) {
+                Log.i("rqrq","onServiceConnected")
+                val serverBinder = binder as? MediaServerBinder ?: return
+                mService = serverBinder.service
+            }
+
+            override fun onServiceDisconnected(p0: ComponentName?) {
+                mService = null
+            }
+        }
+        context.bindService(
+            Intent(context, MediaServer::class.java),
+            mConnection!!,
+            Service.BIND_AUTO_CREATE
+        )
     }
 
     /**
