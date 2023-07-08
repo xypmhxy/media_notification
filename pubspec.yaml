@@ -1,7 +1,7 @@
 name: media_notification
 description: A new Flutter plugin project.
 version: 0.0.1
-homepage:
+homepage: https://github.com/xypmhxy/media_notification
 
 environment:
   sdk: '>=2.19.6 <3.0.0'

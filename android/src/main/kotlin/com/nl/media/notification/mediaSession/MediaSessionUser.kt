@@ -2,6 +2,7 @@ package com.nl.media.notification.mediaSession
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
 import android.os.Build
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
@@ -14,7 +15,11 @@ class MediaSessionUser {
     private var mOnMediaButtonListener: OnMediaButtonListener? = null
 
     companion object {
-        const val MEDIA_SESSION_ACTIONS: Long = PlaybackStateCompat.ACTION_SEEK_TO
+        const val MEDIA_SESSION_ACTIONS: Long = PlaybackStateCompat.ACTION_SEEK_TO or
+                PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS or
+                PlaybackStateCompat.ACTION_PLAY_PAUSE or
+                PlaybackStateCompat.ACTION_SKIP_TO_NEXT
+
 
         val get by lazy(LazyThreadSafetyMode.NONE) {
             MediaSessionUser()
@@ -29,32 +34,45 @@ class MediaSessionUser {
 
         mediaSession.setCallback(object : MediaSessionCompat.Callback() {
 
-            override fun onMediaButtonEvent(mediaButtonEvent: Intent?): Boolean {
-                val keyEvent = if (Build.VERSION.SDK_INT >= 33) {
-                    mediaButtonEvent?.getParcelableExtra<KeyEvent>(
-                        Intent.EXTRA_KEY_EVENT,
-                    )
-                } else {
-                    mediaButtonEvent?.getParcelableExtra(Intent.EXTRA_KEY_EVENT)
-                }
-                if (keyEvent?.action == KeyEvent.ACTION_UP) {
-                    when (keyEvent.keyCode) {
-                        KeyEvent.KEYCODE_MEDIA_PLAY -> mOnMediaButtonListener?.onClickPlay()
-                        KeyEvent.KEYCODE_MEDIA_PAUSE -> mOnMediaButtonListener?.onClickPlay()
-                        KeyEvent.KEYCODE_MEDIA_PREVIOUS -> mOnMediaButtonListener?.onClickPrevious()
-                        KeyEvent.KEYCODE_MEDIA_NEXT -> mOnMediaButtonListener?.onClickNext()
-                    }
-                }
-                return true
+//            override fun onMediaButtonEvent(mediaButtonEvent: Intent?): Boolean {
+//                val keyEvent = if (Build.VERSION.SDK_INT >= 33) {
+//                    mediaButtonEvent?.getParcelableExtra<KeyEvent>(
+//                        Intent.EXTRA_KEY_EVENT,
+//                    )
+//                } else {
+//                    mediaButtonEvent?.getParcelableExtra(Intent.EXTRA_KEY_EVENT)
+//                }
+//                if (keyEvent?.action == KeyEvent.ACTION_UP) {
+//                    when (keyEvent.keyCode) {
+//                        KeyEvent.KEYCODE_MEDIA_PLAY -> mOnMediaButtonListener?.onClickPlay()
+//                        KeyEvent.KEYCODE_MEDIA_PAUSE -> mOnMediaButtonListener?.onClickPlay()
+//                        KeyEvent.KEYCODE_MEDIA_PREVIOUS -> mOnMediaButtonListener?.onClickPrevious()
+//                        KeyEvent.KEYCODE_MEDIA_NEXT -> mOnMediaButtonListener?.onClickNext()
+//                    }
+//                }
+//                return true
+//            }
+
+            override fun onSkipToPrevious() {
+                mOnMediaButtonListener?.onClickPrevious()
+            }
+
+            override fun onPlay() {
+                mOnMediaButtonListener?.onClickPlay()
+            }
+
+            override fun onPause() {
+                mOnMediaButtonListener?.onClickPlay()
+            }
+
+            override fun onSkipToNext() {
+                mOnMediaButtonListener?.onClickNext()
             }
 
             override fun onSeekTo(pos: Long) {
-                super.onSeekTo(pos)
+                mOnMediaButtonListener?.onSeekTo(pos)
             }
         })
-        val playbackState =
-            PlaybackStateCompat.Builder().setActions(MEDIA_SESSION_ACTIONS).build()
-        mediaSession.setPlaybackState(playbackState)
         mediaSession.isActive = true
     }
 
@@ -62,28 +80,53 @@ class MediaSessionUser {
         return mediaSession.sessionToken
     }
 
-    fun updatePlayState(isPlaying: Boolean?, position: Long?, duration: Long?, playSpeed: Float?) {
-        val playingState = if (isPlaying == null) mediaSession.controller.playbackState.state else {
-            if (isPlaying) PlaybackStateCompat.STATE_PLAYING else {
-                PlaybackStateCompat.STATE_PAUSED
+    fun updatePlayState(isPlaying: Boolean?, position: Long?, playSpeed: Float?) {
+
+        val playingState =
+            if (isPlaying == null && mediaSession.controller != null && mediaSession.controller.playbackState != null) mediaSession.controller.playbackState.state else {
+                if (isPlaying == true) PlaybackStateCompat.STATE_PLAYING else {
+                    PlaybackStateCompat.STATE_PAUSED
+                }
             }
-        }
 
-        val positionL = position ?: mediaSession.controller.playbackState.position
-
+        val playbackPosition = position ?: mediaSession.controller.playbackState.position
+        val playbackSpeed = playSpeed ?: 1.0f
         mediaSession.setPlaybackState(
-            PlaybackStateCompat.Builder().setState(playingState, positionL, playSpeed ?: 1.0f)
+            PlaybackStateCompat.Builder()
+                .setActions(MEDIA_SESSION_ACTIONS)
+                .setState(playingState, playbackPosition, playbackSpeed)
                 .build()
         )
+    }
+
+    fun updatePlayInfo(
+        duration: Long?,
+        title: String?,
+        subTitle: String?,
+        resource: Bitmap? = null
+    ) {
+        val metaDataBuilder = MediaMetadataCompat.Builder()
         if (duration != null && duration > 0) {
-            mediaSession.setMetadata(
-                MediaMetadataCompat.Builder().putLong(
-                    MediaMetadataCompat.METADATA_KEY_DURATION,
-                    duration
-                ).build()
+            metaDataBuilder.putLong(
+                MediaMetadataCompat.METADATA_KEY_DURATION,
+                duration
             )
         }
-        android.util.Log.i("MusicMessageChannel", "position $position")
+
+        if (title != null) {
+            metaDataBuilder.putString(MediaMetadataCompat.METADATA_KEY_TITLE, title)
+        }
+
+        if (subTitle != null) {
+            metaDataBuilder.putString(MediaMetadataCompat.METADATA_KEY_ARTIST, subTitle)
+        }
+
+        if (resource != null) {
+            metaDataBuilder.putBitmap(MediaMetadataCompat.METADATA_KEY_ART, resource)
+        }
+
+        mediaSession.setMetadata(metaDataBuilder.build())
+
     }
 
     fun setOnMediaButtonListener(listener: OnMediaButtonListener) {
@@ -95,4 +138,5 @@ public interface OnMediaButtonListener {
     fun onClickPlay()
     fun onClickPrevious()
     fun onClickNext()
+    fun onSeekTo(position: Long)
 }

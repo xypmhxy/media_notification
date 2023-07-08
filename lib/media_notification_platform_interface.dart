@@ -1,5 +1,6 @@
 import 'package:media_notification/bean/media_notification_info.dart';
 import 'package:media_notification/bean/notification_config.dart';
+import 'package:media_notification/on_media_button_callback.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 import 'media_notification_method_channel.dart';
@@ -36,4 +37,6 @@ abstract class MediaNotificationPlatform extends PlatformInterface {
   Future<bool> updatePlayState(bool isPlaying);
 
   Future<bool> updatePosition(int timeMs);
+
+  Future<bool> setOnMediaButtonCallback(OnMediaButtonCallback callback);
 }

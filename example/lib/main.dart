@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:media_notification/bean/media_notification_info.dart';
 import 'package:media_notification/bean/notification_config.dart';
 import 'package:media_notification/media_notification.dart';
+import 'package:media_notification/on_media_button_callback.dart';
 import 'package:video_player/video_player.dart';
 
 void main() {
@@ -18,26 +19,33 @@ class MyApp extends StatefulWidget {
   State<MyApp> createState() => _MyAppState();
 }
 
-class _MyAppState extends State<MyApp> {
+class _MyAppState extends State<MyApp> implements OnMediaButtonCallback{
   final _mediaNotificationPlugin = MediaNotification();
   VideoPlayerController? _videoPlayerController;
+  bool isPlaying = false;
 
   @override
   void initState() {
     super.initState();
     _mediaNotificationPlugin
         .updateConfig(NotificationConfig(
-            appIcon: "resource://mipmap/ic_launcher",
-            androidLargeIcon: "resource://drawable/bg_largeicon",
-            androidPlayIcon: "resource://drawable/ic_play",
-            androidPauseIcon: "resource://drawable/ic_pause",
-            androidPreIcon: "resource://drawable/ic_pre",
-            androidNextIcon: "resource://drawable/ic_next"))
+      appIcon: "resource://mipmap/ic_launcher",
+      androidLargeIcon: "resource://drawable/bg_largeicon",
+    ))
         .then((value) {
       print('设置config结果 $value');
+      // _mediaNotificationPlugin.showNotification();
     });
+    _mediaNotificationPlugin.setOnMediaButtonCallback(this);
     _videoPlayerController =
         VideoPlayerController.networkUrl(Uri.parse('https://media.w3.org/2010/05/sintel/trailer.mp4'));
+    _videoPlayerController?.addListener(() {
+      final isPlaying = _videoPlayerController?.value.isPlaying ?? false;
+      if (this.isPlaying != isPlaying) {
+        this.isPlaying = isPlaying;
+        setState(() {});
+      }
+    });
     _videoPlayerController?.initialize().then((value) {
       _videoPlayerController?.play();
       setState(() {});
@@ -60,15 +68,63 @@ class _MyAppState extends State<MyApp> {
         appBar: AppBar(
           title: const Text('Plugin example app'),
         ),
-        body: Center(
-          child: (_videoPlayerController?.value.isInitialized ?? false) == false
-              ? const SizedBox(width: 56, height: 56, child: CircularProgressIndicator())
-              : AspectRatio(
-                  aspectRatio: _videoPlayerController?.value.aspectRatio ?? 1.75,
-                  child: VideoPlayer(_videoPlayerController!),
-                ),
+        body: Column(
+          children: [
+            (_videoPlayerController?.value.isInitialized ?? false) == false
+                ? const SizedBox(width: 56, height: 56, child: CircularProgressIndicator())
+                : AspectRatio(
+                    aspectRatio: _videoPlayerController?.value.aspectRatio ?? 1.75,
+                    child: VideoPlayer(_videoPlayerController!),
+                  ),
+            const SizedBox(
+              height: 120,
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                ElevatedButton(onPressed: () {}, child: const Text('Previous')),
+                ElevatedButton(
+                    onPressed: () {
+                      if (_videoPlayerController!.value.isPlaying) {
+                        _videoPlayerController?.pause();
+                        _mediaNotificationPlugin.updatePlayState(false);
+                      } else {
+                        _videoPlayerController?.play();
+                        _mediaNotificationPlugin.updatePlayState(true);
+                      }
+                    },
+                    child: Text(isPlaying ? 'Pause' : 'Play')),
+                ElevatedButton(onPressed: () {}, child: const Text('Next'))
+              ],
+            )
+          ],
         ),
       ),
     );
+  }
+
+  @override
+  void onNext() {
+
+  }
+
+  @override
+  void onPlayPause() {
+    if (_videoPlayerController!.value.isPlaying) {
+      _videoPlayerController?.pause();
+      _mediaNotificationPlugin.updatePlayState(false);
+    } else {
+      _videoPlayerController?.play();
+      _mediaNotificationPlugin.updatePlayState(true);
+    }
+  }
+
+  @override
+  void onPrevious() {
+  }
+
+  @override
+  void onSeek(int position) {
+    _videoPlayerController?.seekTo(Duration(milliseconds: position));
   }
 }

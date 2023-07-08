@@ -6,7 +6,6 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.content.pm.ServiceInfo
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.drawable.Drawable
@@ -18,11 +17,7 @@ import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.RequestOptions
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
-import com.nl.media.notification.MediaServer
 import com.nl.media.notification.bean.MediaNotificationInfo
-import com.nl.media.notification.broadcast.NotificationControlBroadcast.Companion.ACTION_CLICK_PLAY
-import com.nl.media.notification.broadcast.NotificationControlBroadcast.Companion.ACTION_NEXT
-import com.nl.media.notification.broadcast.NotificationControlBroadcast.Companion.ACTION_PREV
 import com.nl.media.notification.config.NotificationConfigManager
 import com.nl.media.notification.mediaSession.MediaSessionUser
 import com.nl.media.notification.utils.ActivityUtils
@@ -33,57 +28,66 @@ class NotificationUIManager private constructor() {
     private var mNotificationManager: NotificationManager? = null
     private var mBuilder: NotificationCompat.Builder? = null
     private var mNotification: Notification? = null
-    private var largeIconBitmap: Bitmap? = null
+    var isAllowReLoadNotification = true
 
     companion object {
 
         const val CHANNEL_ID = "MediaNotificationChannelId"
-        const val MEDIA_FOREGROUND_ID = 124
+        const val MEDIA_FOREGROUND_ID = 120
 
         val get by lazy(LazyThreadSafetyMode.NONE) {
             NotificationUIManager()
         }
     }
 
-    fun updateNotification(context: MediaServer, notificationInfo: MediaNotificationInfo) {
+    fun updateNotification(context: Context, notificationInfo: MediaNotificationInfo) {
+        updateInfo(context, notificationInfo)
         updateState(notificationInfo)
-        updateNotificationInfo(context, notificationInfo)
     }
 
-    private fun updateState(notificationInfo: MediaNotificationInfo) {
+     fun updateState(notificationInfo: MediaNotificationInfo) {
         MediaSessionUser.get.updatePlayState(
             isPlaying = notificationInfo.isPlaying,
             position = notificationInfo.position,
-            duration = notificationInfo.duration,
             playSpeed = notificationInfo.playSpeed
         )
     }
 
-    private fun updateNotificationInfo(context: MediaServer, notificationInfo: MediaNotificationInfo) {
-        val notificationConfig = NotificationConfigManager.get.getConfig()
+    private fun updateInfo(context: Context, notificationInfo: MediaNotificationInfo) {
+        MediaSessionUser.get.updatePlayInfo(
+            duration = notificationInfo.duration,
+            title = notificationInfo.title,
+            subTitle = notificationInfo.subtitle
+        )
 
+        val imageData = notificationInfo.imageData ?: byteArrayOf()
+        val imagePath = notificationInfo.imagePath ?: ""
+        loadImage(
+            context,
+            imageData = imageData,
+            imagePath = imagePath,
+            placeholderRes = 0,
+            onLoadSuccess = { resource ->
+                MediaSessionUser.get.updatePlayInfo(
+                    duration = notificationInfo.duration,
+                    title = notificationInfo.title,
+                    subTitle = notificationInfo.subtitle,
+                    resource = resource
+                )
+            })
+    }
+
+    /**
+     * 如果未展示通知栏或者设置更改则刷新否则不刷新
+     */
+    fun tryShowNotification(context: Context) {
+        if (!isAllowReLoadNotification) return;
+        val notificationConfig = NotificationConfigManager.get.getConfig()
         if (mNotificationManager == null) {
             mNotificationManager =
-                context.getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager?
+                context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager?
         }
-        val pendingLast = PendingIntent.getBroadcast(
-            context,
-            1,
-            Intent(ACTION_PREV),
-            PendingIntent.FLAG_IMMUTABLE
-        )
-        val pendingNext = PendingIntent.getBroadcast(
-            context,
-            2,
-            Intent(ACTION_NEXT),
-            PendingIntent.FLAG_IMMUTABLE
-        )
-        val pendingPlay = PendingIntent.getBroadcast(
-            context,
-            3,
-            Intent(ACTION_CLICK_PLAY),
-            PendingIntent.FLAG_IMMUTABLE
-        )
+
         val intent = Intent(context, ActivityUtils.getMainTargetClass(context))
         intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
         val pendingTurn =
@@ -100,23 +104,6 @@ class NotificationUIManager private constructor() {
             }
         }
 
-        val title = notificationInfo.title ?: "- -"
-        val subtitle = notificationInfo.subtitle ?: "- -"
-        val isPlaying = notificationInfo.isPlaying ?: false
-        val imageData = notificationInfo.imageData ?: byteArrayOf()
-        val imagePath = notificationInfo.imagePath ?: ""
-
-        val preResId: Int =
-            BitmapUtils.getDrawableResourceId(context, notificationConfig.androidPreIcon ?: "")
-        val nextResId: Int =
-            BitmapUtils.getDrawableResourceId(context, notificationConfig.androidNextIcon ?: "")
-
-        val playIcon =
-            BitmapUtils.getDrawableResourceId(context, notificationConfig.androidPlayIcon ?: "")
-        val pauseIcon =
-            BitmapUtils.getDrawableResourceId(context, notificationConfig.androidPauseIcon ?: "")
-        val playPauseResId: Int = if (isPlaying) pauseIcon else playIcon
-
         var largeIconRes =
             BitmapUtils.getDrawableResourceId(context, notificationConfig.androidLargeIcon ?: "")
         if (largeIconRes == 0) {
@@ -131,49 +118,32 @@ class NotificationUIManager private constructor() {
             smallIcon = BitmapUtils.getDrawableResourceId(context, notificationConfig.appIcon ?: "")
         }
 
-        loadImage(context,imageData = imageData,imagePath=imagePath, placeholderRes = 0)
-
         mBuilder = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setContentTitle(title)
-            .setContentText(subtitle)
-            .setLargeIcon(this.largeIconBitmap?:largeIconBitmap)
+            .setLargeIcon(largeIconBitmap)
             .setContentIntent(pendingTurn)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setSmallIcon(smallIcon)
-            .addAction(preResId, "Pre", pendingLast)
-            .addAction(playPauseResId, "Play", pendingPlay)
-            .addAction(nextResId, "Next", pendingNext)
             .setOngoing(true)
             .setShowWhen(false)
             .setSilent(true)
-            .setLights(NotificationCompat.DEFAULT_LIGHTS, 3000, 3000)
-            .setPriority(Notification.PRIORITY_MAX)
             .setStyle(
                 androidx.media.app.NotificationCompat.MediaStyle()
                     .setMediaSession(MediaSessionUser.get.getSessionToken())
                     .setShowActionsInCompactView(0, 1, 2)
             )
         mNotification = mBuilder!!.build()
-//        mNotification?.flags = NotificationCompat.FLAG_SHOW_LIGHTS
-//        mNotificationManager?.notify(MEDIA_FOREGROUND_ID, mNotification)
-
-        val result = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            context.startForeground(
-                MEDIA_FOREGROUND_ID, mNotification!!, ServiceInfo
-                    .FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK
-            )
-            true
-        } else {
-            context.startForeground(MEDIA_FOREGROUND_ID, mNotification!!)
-            true
-        }
+        mNotification?.flags =
+            NotificationCompat.FLAG_FOREGROUND_SERVICE or NotificationCompat.FLAG_NO_CLEAR
+        mNotificationManager?.notify(MEDIA_FOREGROUND_ID, mNotification)
+        isAllowReLoadNotification = false;
     }
 
     private fun loadImage(
         context: Context,
         imageData: ByteArray,
         imagePath: String,
-        placeholderRes: Int
+        placeholderRes: Int,
+        onLoadSuccess: (resource: Bitmap) -> Unit
     ) {
         if (imageData.isEmpty() && imagePath.isEmpty()) {
             return;
@@ -211,17 +181,10 @@ class NotificationUIManager private constructor() {
             }
         requestBuilder.into(object : CustomTarget<Bitmap>() {
             override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
-                if (mBuilder == null) return
-                largeIconBitmap = resource
-                mBuilder!!.setLargeIcon(resource)
-                mNotificationManager?.notify(MEDIA_FOREGROUND_ID, mBuilder!!.build())
+                onLoadSuccess(resource)
             }
 
             override fun onLoadCleared(placeholder: Drawable?) {
-            }
-
-            override fun onLoadFailed(errorDrawable: Drawable?) {
-                super.onLoadFailed(errorDrawable)
             }
         })
     }
