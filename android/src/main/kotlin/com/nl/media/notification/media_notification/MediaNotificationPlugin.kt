@@ -76,6 +76,13 @@ class MediaNotificationPlugin : FlutterPlugin, MethodCallHandler, OnMediaButtonL
             "updatePlayState" ->{
                 val isPlaying = call.arguments as? Boolean
                 NotificationUIManager.get.updateState(MediaNotificationInfo(isPlaying = isPlaying))
+                result.success(true)
+            }
+
+            "updatePosition" ->{
+                val position = call.arguments as? Int
+                NotificationUIManager.get.updateState(MediaNotificationInfo(position = position?.toLong()))
+                result.success(true)
             }
 
             else -> {

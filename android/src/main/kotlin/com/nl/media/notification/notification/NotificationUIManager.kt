@@ -81,7 +81,10 @@ class NotificationUIManager private constructor() {
      * 如果未展示通知栏或者设置更改则刷新否则不刷新
      */
     fun tryShowNotification(context: Context) {
-        if (!isAllowReLoadNotification) return;
+        if (!isAllowReLoadNotification) {
+            mNotificationManager?.notify(MEDIA_FOREGROUND_ID, mNotification)
+            return
+        }
         val notificationConfig = NotificationConfigManager.get.getConfig()
         if (mNotificationManager == null) {
             mNotificationManager =
@@ -154,12 +157,12 @@ class NotificationUIManager private constructor() {
         } else if (imagePath.startsWith("assets://")) {
             val bitmap = BitmapUtils.getBitmapFromAssets(context, imagePath)
             if (bitmap != null) {
-                any = bitmap
+                any = bitmap;
             }
         } else if (imagePath.startsWith("file://")) {
             val bitmap = BitmapUtils.getBitmapFromFile(imagePath)
             if (bitmap != null) {
-                any = bitmap
+                any = bitmap;
             }
         } else if (imagePath.startsWith("http")) {
             any = imagePath;

@@ -44,7 +44,8 @@ class MethodChannelMediaNotification extends MediaNotificationPlatform {
 
   @override
   Future<bool> updatePosition(int timeMs) async {
-    return false;
+    final result = await methodChannel.invokeMethod<bool>('updatePosition', timeMs);
+    return result ?? false;
   }
 
   @override

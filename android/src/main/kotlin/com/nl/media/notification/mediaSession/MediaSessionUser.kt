@@ -83,18 +83,22 @@ class MediaSessionUser {
     fun updatePlayState(isPlaying: Boolean?, position: Long?, playSpeed: Float?) {
 
         val playingState =
-            if (isPlaying == null && mediaSession.controller != null && mediaSession.controller.playbackState != null) mediaSession.controller.playbackState.state else {
+            if (isPlaying == null) mediaSession.controller?.playbackState?.state else {
                 if (isPlaying == true) PlaybackStateCompat.STATE_PLAYING else {
                     PlaybackStateCompat.STATE_PAUSED
                 }
             }
 
-        val playbackPosition = position ?: mediaSession.controller.playbackState.position
+        val playbackPosition = position ?: mediaSession.controller?.playbackState?.position
         val playbackSpeed = playSpeed ?: 1.0f
         mediaSession.setPlaybackState(
             PlaybackStateCompat.Builder()
                 .setActions(MEDIA_SESSION_ACTIONS)
-                .setState(playingState, playbackPosition, playbackSpeed)
+                .setState(
+                    playingState ?: PlaybackStateCompat.STATE_PAUSED,
+                    playbackPosition ?: 0,
+                    playbackSpeed
+                )
                 .build()
         )
     }

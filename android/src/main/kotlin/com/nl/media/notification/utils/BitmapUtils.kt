@@ -17,7 +17,7 @@ class BitmapUtils {
             var inputStream: InputStream? = null
             try {
                 inputStream = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                    context.assets.open("flutter_assets/$bitmapPath")
+                    context.assets.open("flutter_assets/assets/$bitmapPath")
                 } else {
                     val assetLookupKey = FlutterMain.getLookupKeyForAsset(bitmapPath)
                     val assetManager = context.assets
@@ -63,7 +63,7 @@ class BitmapUtils {
         private fun cleanMediaPath(mediaPath: String?): String? {
             if (mediaPath != null) {
                 val pattern = Pattern.compile("^https?:\\/\\/", Pattern.CASE_INSENSITIVE)
-                val pattern2 = Pattern.compile("^(asset:\\/\\/)(.*)", Pattern.CASE_INSENSITIVE)
+                val pattern2 = Pattern.compile("^(assets:\\/\\/)(.*)", Pattern.CASE_INSENSITIVE)
                 val pattern3 = Pattern.compile("^(file:\\/\\/)(.*)", Pattern.CASE_INSENSITIVE)
                 val pattern4 = Pattern.compile("^(resource:\\/\\/)(.*)", Pattern.CASE_INSENSITIVE)
                 if (pattern.matcher(mediaPath).find()) {
