@@ -116,10 +116,12 @@ class _MyAppState extends State<MyApp> implements OnMediaButtonCallback {
                     onPressed: () {
                       if (_videoPlayerController!.value.isPlaying) {
                         _videoPlayerController?.pause();
-                        _mediaNotificationPlugin.updatePlayState(false);
+                        _mediaNotificationPlugin.updatePlayState(false,position: _videoPlayerController!.value
+                            .position.inMilliseconds);
                       } else {
                         _videoPlayerController?.play();
-                        _mediaNotificationPlugin.updatePlayState(true);
+                        _mediaNotificationPlugin.updatePlayState(true,position: _videoPlayerController!.value
+                            .position.inMilliseconds);
                       }
                     },
                     child: Text(isPlaying ? 'Pause' : 'Play')),

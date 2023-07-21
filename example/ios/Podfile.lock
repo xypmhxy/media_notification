@@ -1,0 +1,35 @@
+PODS:
+  - Flutter (1.0.0)
+  - Kingfisher (6.3.1)
+  - media_notification (0.0.1):
+    - Flutter
+    - Kingfisher
+  - video_player_avfoundation (0.0.1):
+    - Flutter
+
+DEPENDENCIES:
+  - Flutter (from `Flutter`)
+  - media_notification (from `.symlinks/plugins/media_notification/ios`)
+  - video_player_avfoundation (from `.symlinks/plugins/video_player_avfoundation/ios`)
+
+SPEC REPOS:
+  trunk:
+    - Kingfisher
+
+EXTERNAL SOURCES:
+  Flutter:
+    :path: Flutter
+  media_notification:
+    :path: ".symlinks/plugins/media_notification/ios"
+  video_player_avfoundation:
+    :path: ".symlinks/plugins/video_player_avfoundation/ios"
+
+SPEC CHECKSUMS:
+  Flutter: f04841e97a9d0b0a8025694d0796dd46242b2854
+  Kingfisher: 016c8b653a35add51dd34a3aba36b580041acc74
+  media_notification: 63fe8cc0a2d014aad1b2982572f8ba7f4cd1f5c2
+  video_player_avfoundation: 81e49bb3d9fb63dccf9fa0f6d877dc3ddbeac126
+
+PODFILE CHECKSUM: ef19549a9bc3046e7bb7d2fab4d021637c0c58a3
+
+COCOAPODS: 1.11.3

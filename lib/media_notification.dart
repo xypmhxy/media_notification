@@ -17,8 +17,8 @@ class MediaNotification {
     return MediaNotificationPlatform.instance.updateNotification(mediaNotificationInfo);
   }
 
-  Future<bool> updatePlayState(bool isPlaying) {
-    return MediaNotificationPlatform.instance.updatePlayState(isPlaying);
+  Future<bool> updatePlayState(bool isPlaying,{ int? position}) {
+    return MediaNotificationPlatform.instance.updatePlayState(isPlaying, position: position);
   }
 
   Future<bool> updatePosition(int timeMs) {

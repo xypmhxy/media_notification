@@ -37,8 +37,9 @@ class MethodChannelMediaNotification extends MediaNotificationPlatform {
   }
 
   @override
-  Future<bool> updatePlayState(bool isPlaying) async {
-    final result = await methodChannel.invokeMethod<bool>('updatePlayState', isPlaying);
+  Future<bool> updatePlayState(bool isPlaying, {int? position}) async {
+    final result =
+        await methodChannel.invokeMethod<bool>('updatePlayState', {"isPlaying": isPlaying, "position": position});
     return result ?? false;
   }
 
