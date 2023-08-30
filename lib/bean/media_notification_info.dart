@@ -12,6 +12,7 @@ class MediaNotificationInfo {
   int? position;
   double? playSpeed;
   String? imagePath;
+  String? placeHolderAssets;
   List<int>? imageData;
 
   MediaNotificationInfo({
@@ -24,6 +25,7 @@ class MediaNotificationInfo {
     this.position,
     this.playSpeed,
     this.imagePath,
+    this.placeHolderAssets,
     this.imageData,
   });
 

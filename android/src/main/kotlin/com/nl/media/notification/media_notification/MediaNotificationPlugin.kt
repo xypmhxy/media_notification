@@ -1,6 +1,7 @@
 package com.nl.media.notification.media_notification
 
 import android.content.Context
+import android.content.IntentFilter
 import androidx.annotation.NonNull
 import com.nl.media.notification.LifeCycleManager
 import com.nl.media.notification.bean.MediaNotificationInfo
@@ -8,6 +9,7 @@ import com.nl.media.notification.config.NotificationConfig
 import com.nl.media.notification.config.NotificationConfigManager
 import com.nl.media.notification.mediaSession.MediaSessionUser
 import com.nl.media.notification.mediaSession.OnMediaButtonListener
+import com.nl.media.notification.notification.NotificationCommandReceiver
 import com.nl.media.notification.notification.NotificationUIManager
 import com.nl.media.notification.utils.ScreenUtil
 
@@ -25,6 +27,7 @@ class MediaNotificationPlugin : FlutterPlugin, MethodCallHandler, OnMediaButtonL
     /// when the Flutter Engine is detached from the Activity
     private lateinit var channel: MethodChannel
     private var mContext: Context? = null
+    private val mNotificationCommandReceiver = NotificationCommandReceiver()
 
     override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
         mContext = flutterPluginBinding.applicationContext
@@ -36,7 +39,7 @@ class MediaNotificationPlugin : FlutterPlugin, MethodCallHandler, OnMediaButtonL
         MediaSessionUser.get.initMediaSession(mContext!!)
         MediaSessionUser.get.setOnMediaButtonListener(this)
 
-//        registerNotificationReceiver()
+        registerNotificationReceiver(mContext!!)
         ScreenUtil.init(mContext!!)
         LifeCycleManager.get.register()
     }
@@ -69,17 +72,29 @@ class MediaNotificationPlugin : FlutterPlugin, MethodCallHandler, OnMediaButtonL
                 val mediaNotificationInfo =
                     MediaNotificationInfo.fromMap(call.arguments as Map<String, Any>)
                 NotificationUIManager.get.updateNotification(mContext!!, mediaNotificationInfo)
-                NotificationUIManager.get.tryShowNotification(mContext!!)
+                NotificationUIManager.get.tryShowNotification(
+                    mContext!!, isPlaying = mediaNotificationInfo.isPlaying
+                        ?: false
+                )
                 result.success(true)
             }
 
-            "updatePlayState" ->{
-                val isPlaying = call.arguments as? Boolean
+            "updatePlayState" -> {
+                if (call.arguments !is Map<*, *>) {
+                    result.success(false)
+                    return
+                }
+                val params = call.arguments as Map<String, Any>
+                val isPlaying = params["isPlaying"] as? Boolean
                 NotificationUIManager.get.updateState(MediaNotificationInfo(isPlaying = isPlaying))
+                NotificationUIManager.get.tryShowNotification(
+                    mContext!!, isPlaying = isPlaying
+                        ?: false
+                )
                 result.success(true)
             }
 
-            "updatePosition" ->{
+            "updatePosition" -> {
                 val position = call.arguments as? Int
                 NotificationUIManager.get.updateState(MediaNotificationInfo(position = position?.toLong()))
                 result.success(true)
@@ -93,6 +108,14 @@ class MediaNotificationPlugin : FlutterPlugin, MethodCallHandler, OnMediaButtonL
 
     override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
         channel.setMethodCallHandler(null)
+    }
+
+    private fun registerNotificationReceiver(context: Context) {
+        val intentFilter = IntentFilter(NotificationCommandReceiver.ACTION_PREVIOUS)
+        intentFilter.addAction(NotificationCommandReceiver.ACTION_PLAY_PAUSE)
+        intentFilter.addAction(NotificationCommandReceiver.ACTION_NEXT)
+        context.registerReceiver(mNotificationCommandReceiver, intentFilter)
+        mNotificationCommandReceiver.setOnMediaButtonListener(this)
     }
 
     /**

@@ -11,6 +11,7 @@ class MediaNotificationInfo(
     var duration: Long? = null,
     var position: Long? = null,
     var playSpeed: Float? = null,
+    var placeHolderAssets: String? = null,
     var imagePath: String? = null,
     var imageData: ByteArray? = null,
 ) {
@@ -25,6 +26,7 @@ class MediaNotificationInfo(
                 duration = (map["duration"] as? Int?)?.toLong(),
                 position = (map["position"] as? Int?)?.toLong(),
                 playSpeed = map["playSpeed"] as? Float?,
+                placeHolderAssets = map["placeHolderAssets"] as? String?,
                 imagePath = map["imagePath"] as? String?,
                 imageData = map["imageData"] as? ByteArray?,
             )

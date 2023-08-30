@@ -53,9 +53,13 @@ class _MyAppState extends State<MyApp> implements OnMediaButtonCallback {
         assets: 'assets/video_2.mp4'));
 
     _mediaNotificationPlugin.updateConfig(NotificationConfig(
-      appIcon: "resource://mipmap/ic_launcher",
-      androidLargeIcon: "resource://drawable/bg_largeicon",
-    ));
+        appIcon: "resource://mipmap/ic_launcher",
+        androidLargeIcon: "resource://drawable/bg_largeicon",
+        androidPreIcon: "resource://drawable/ic_pre",
+        androidPlayIcon: "resource://drawable/ic_play",
+        androidPauseIcon: "resource://drawable/ic_pause",
+        androidNextIcon: "resource://drawable/ic_next",
+        imageSize: const Size(168, 168)));
     _mediaNotificationPlugin.setOnMediaButtonCallback(this);
     setDataSource(videoList.first);
   }
@@ -116,12 +120,12 @@ class _MyAppState extends State<MyApp> implements OnMediaButtonCallback {
                     onPressed: () {
                       if (_videoPlayerController!.value.isPlaying) {
                         _videoPlayerController?.pause();
-                        _mediaNotificationPlugin.updatePlayState(false,position: _videoPlayerController!.value
-                            .position.inMilliseconds);
+                        _mediaNotificationPlugin.updatePlayState(false,
+                            position: _videoPlayerController!.value.position.inMilliseconds);
                       } else {
                         _videoPlayerController?.play();
-                        _mediaNotificationPlugin.updatePlayState(true,position: _videoPlayerController!.value
-                            .position.inMilliseconds);
+                        _mediaNotificationPlugin.updatePlayState(true,
+                            position: _videoPlayerController!.value.position.inMilliseconds);
                       }
                     },
                     child: Text(isPlaying ? 'Pause' : 'Play')),
@@ -173,7 +177,7 @@ class _MyAppState extends State<MyApp> implements OnMediaButtonCallback {
     _mediaNotificationPlugin.updatePosition(position);
   }
 
-  Future<void> setDataSource(Video video) async{
+  Future<void> setDataSource(Video video) async {
     await _videoPlayerController?.dispose();
     _videoPlayerController = VideoPlayerController.asset(video.assets);
     _videoPlayerController?.addListener(() {
@@ -206,6 +210,7 @@ class _MyAppState extends State<MyApp> implements OnMediaButtonCallback {
           isPlaying: true,
           duration: _videoPlayerController!.value.duration.inMilliseconds,
           position: 0,
+          placeHolderAssets: 'assets/bg_largeicon.jpg',
           imagePath: video.imagePath));
     });
   }
