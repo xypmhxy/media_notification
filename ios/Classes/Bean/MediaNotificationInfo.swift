@@ -11,8 +11,8 @@ import Flutter
 class MediaNotificationInfo{
     var title: String?
     var subtitle: String?
-    var hasNext: Bool?
-    var hasPre: Bool?
+    var isNextEnable: Bool?
+    var isPreviousEnable: Bool?
     var isPlaying: Bool?
     var duration: Int?
     var position: Int?
@@ -24,8 +24,8 @@ class MediaNotificationInfo{
         let notificationInfo = MediaNotificationInfo()
         notificationInfo.title = dictionary["title"] as? String
         notificationInfo.subtitle = dictionary["subtitle"] as? String
-        notificationInfo.hasNext = dictionary["hasNext"] as? Bool
-        notificationInfo.hasPre = dictionary["hasPre"] as? Bool
+        notificationInfo.isNextEnable = dictionary["isNextEnable"] as? Bool
+        notificationInfo.isPreviousEnable = dictionary["isPreviousEnable"] as? Bool
         notificationInfo.isPlaying = dictionary["isPlaying"] as? Bool
         notificationInfo.duration = dictionary["duration"] as? Int
         notificationInfo.position = dictionary["position"] as? Int

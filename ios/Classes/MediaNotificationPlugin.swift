@@ -49,7 +49,25 @@ public class MediaNotificationPlugin: NSObject, FlutterPlugin, CommandCenterDele
             let dictionary = call.arguments as! Dictionary<String,Any>
             let isPlaying = (dictionary["isPlaying"] as? Bool) ?? false
             let position = (dictionary["position"] as? Int) ?? 0
-            notificationController.updatePlayState(isPlaying: isPlaying,position: position)
+            notificationController.updatePlayState(isPlaying: isPlaying, position: position)
+            result(true)
+        }else if call.method == "updatePosition"{
+            guard let position = call.arguments as? Int else {
+                result(false)
+                return
+            }
+            notificationController.updatePosition(position: position)
+            result(true)
+        }else if call.method == "updateSwitchButtonEnable"{
+            guard call.arguments is Dictionary<String,Any> else {
+                result(false)
+                return
+            }
+            let dictionary = call.arguments as! Dictionary<String,Any>
+            let isPreviousEnable = dictionary["isPreviousEnable"] as? Bool
+            let isNextEnable = dictionary["isNextEnable"] as? Bool
+            notificationController.updateSwitchButtonEnable(isPreviousEnable: isPreviousEnable, isNextEnable: isNextEnable)
+            result(true)
         }
     }
     

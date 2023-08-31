@@ -50,6 +50,15 @@ class MethodChannelMediaNotification extends MediaNotificationPlatform {
   }
 
   @override
+  Future<bool> updateSwitchButtonEnable(bool? isPreviousEnable, bool? isNextEnable) async {
+    final result = await methodChannel.invokeMethod<bool>('updateSwitchButtonEnable', {
+      'isPreviousEnable': isPreviousEnable,
+      'isNextEnable': isNextEnable,
+    });
+    return result ?? false;
+  }
+
+  @override
   Future<bool> setOnMediaButtonCallback(OnMediaButtonCallback callback) async {
     _mediaButtonCallback = callback;
     return false;

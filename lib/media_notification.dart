@@ -17,7 +17,7 @@ class MediaNotification {
     return MediaNotificationPlatform.instance.updateNotification(mediaNotificationInfo);
   }
 
-  Future<bool> updatePlayState(bool isPlaying,{ int? position}) {
+  Future<bool> updatePlayState(bool isPlaying, {int? position}) {
     return MediaNotificationPlatform.instance.updatePlayState(isPlaying, position: position);
   }
 
@@ -25,7 +25,11 @@ class MediaNotification {
     return MediaNotificationPlatform.instance.updatePosition(timeMs);
   }
 
-  Future<bool> setOnMediaButtonCallback(OnMediaButtonCallback callback){
+  Future<bool> updateSwitchButtonEnable({bool? isPreviousEnable, bool? isNextEnable}) {
+    return MediaNotificationPlatform.instance.updateSwitchButtonEnable(isPreviousEnable, isNextEnable);
+  }
+
+  Future<bool> setOnMediaButtonCallback(OnMediaButtonCallback callback) {
     return MediaNotificationPlatform.instance.setOnMediaButtonCallback(callback);
   }
 }

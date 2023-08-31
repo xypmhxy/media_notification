@@ -34,9 +34,11 @@ abstract class MediaNotificationPlatform extends PlatformInterface {
 
   Future<bool> updateNotification(MediaNotificationInfo mediaNotificationInfo);
 
-  Future<bool> updatePlayState(bool isPlaying, { int? position});
+  Future<bool> updatePlayState(bool isPlaying, {int? position});
 
   Future<bool> updatePosition(int timeMs);
+
+  Future<bool> updateSwitchButtonEnable(bool? isPreviousEnable, bool? isNextEnable);
 
   Future<bool> setOnMediaButtonCallback(OnMediaButtonCallback callback);
 }

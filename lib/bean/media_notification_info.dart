@@ -5,8 +5,8 @@
 class MediaNotificationInfo {
   String? title;
   String? subtitle;
-  bool? hasNext;
-  bool? hasPre;
+  bool? isNextEnable;
+  bool? isPreviousEnable;
   bool? isPlaying;
   int? duration;
   int? position;
@@ -18,8 +18,8 @@ class MediaNotificationInfo {
   MediaNotificationInfo({
     this.title,
     this.subtitle,
-    this.hasNext,
-    this.hasPre,
+    this.isNextEnable,
+    this.isPreviousEnable,
     this.isPlaying,
     this.duration,
     this.position,
@@ -33,8 +33,8 @@ class MediaNotificationInfo {
     return {
       'title': title,
       'subtitle': subtitle,
-      'hasNext': hasNext,
-      'hasPre': hasPre,
+      'isNextEnable': isNextEnable,
+      'isPreviousEnable': isPreviousEnable,
       'isPlaying': isPlaying,
       'duration': duration,
       'position': position,

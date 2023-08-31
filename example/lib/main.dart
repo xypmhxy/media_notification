@@ -146,7 +146,8 @@ class _MyAppState extends State<MyApp> implements OnMediaButtonCallback {
   void onNext() {
     playIndex += 1;
     if (playIndex >= videoList.length) {
-      playIndex = 0;
+      _mediaNotificationPlugin.updateSwitchButtonEnable(isPreviousEnable: true, isNextEnable: false);
+      return;
     }
     setDataSource(videoList[playIndex]);
   }
@@ -155,10 +156,10 @@ class _MyAppState extends State<MyApp> implements OnMediaButtonCallback {
   void onPlayPause() {
     if (_videoPlayerController!.value.isPlaying) {
       _videoPlayerController?.pause();
-      _mediaNotificationPlugin.updatePlayState(false);
+      _mediaNotificationPlugin.updatePlayState(false, position: _videoPlayerController!.value.position.inMilliseconds);
     } else {
       _videoPlayerController?.play();
-      _mediaNotificationPlugin.updatePlayState(true);
+      _mediaNotificationPlugin.updatePlayState(true, position: _videoPlayerController!.value.position.inMilliseconds);
     }
   }
 
@@ -166,7 +167,8 @@ class _MyAppState extends State<MyApp> implements OnMediaButtonCallback {
   void onPrevious() {
     playIndex -= 1;
     if (playIndex < 0) {
-      playIndex = videoList.length - 1;
+      _mediaNotificationPlugin.updateSwitchButtonEnable(isPreviousEnable: false, isNextEnable: true);
+      return;
     }
     setDataSource(videoList[playIndex]);
   }
@@ -208,6 +210,8 @@ class _MyAppState extends State<MyApp> implements OnMediaButtonCallback {
           title: video.title,
           subtitle: video.subTitle,
           isPlaying: true,
+          isNextEnable: true,
+          isPreviousEnable: true,
           duration: _videoPlayerController!.value.duration.inMilliseconds,
           position: 0,
           placeHolderAssets: 'assets/bg_largeicon.jpg',

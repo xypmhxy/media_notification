@@ -28,7 +28,6 @@ class NotificationController{
             return .success
         }
         
-        
         commandCenter.previousTrackCommand.addTarget{ [unowned self] event in
             commandDelegate?.onClickPrevious()
             return .success
@@ -82,12 +81,13 @@ class NotificationController{
             playingInfo[MPNowPlayingInfoPropertyPlaybackRate] = isPlaying ? 1.0:0.0
         }
         
-        
+        updateSwitchButtonEnable(isPreviousEnable: notificationInfo.isPreviousEnable, isNextEnable: notificationInfo.isNextEnable)
+
         let imageData = notificationInfo.imageData
         let imagePath = notificationInfo.imagePath
         let config = NotificationConfigManager.shared.getConfig()
-        let imageWidth = config.imageWidth ?? 300.0
-        let imageHeight = config.imageHeight ?? 300.0
+        let imageWidth = config.imageWidth ?? 196.0
+        let imageHeight = config.imageHeight ?? 196.0
         
         if (imageData?.data.isEmpty == false){
             guard let image = UIImage(data:Data(imageData!.data)) else {return}
@@ -95,7 +95,19 @@ class NotificationController{
                 return image
             }
             playingInfo[MPMediaItemPropertyArtwork] = artwork
-        }else if imagePath?.starts(with: "http") ?? false {
+        }else if imagePath?.starts(with: "assets://") ?? false{
+            let list: [String] = imagePath!.components(separatedBy:"assets://")
+            if (list.isEmpty){
+                return
+            }
+            guard let image =  UIImage.init(named: list.last!) else { return }
+            let artwork = MPMediaItemArtwork.init(boundsSize: CGSizeMake(imageWidth, imageHeight)) { (size) in
+                return image
+            }
+            playingInfo[MPMediaItemPropertyArtwork] = artwork
+            MPNowPlayingInfoCenter.default().nowPlayingInfo = playingInfo
+        }
+        else if imagePath?.starts(with: "http") ?? false {
             let key = imagePath!.md5
             ImageUtils.downloadImage(url: URL(string: imagePath!)!,name: key, completion: {(image) -> Void in
                 DispatchQueue.main.async {
@@ -108,11 +120,6 @@ class NotificationController{
             })
         }
         
-        MPNowPlayingInfoCenter.default().nowPlayingInfo = playingInfo
-        
-        let commandCenter = MPRemoteCommandCenter.shared()
-        commandCenter.previousTrackCommand.isEnabled = notificationInfo.hasPre ?? false
-        commandCenter.nextTrackCommand.isEnabled = notificationInfo.hasNext ?? false
     }
     
     func updatePlayState(isPlaying: Bool, position: Int){
@@ -120,6 +127,25 @@ class NotificationController{
         nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = isPlaying ? 1.0:0.0
         nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = position / 1000
         MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
+    }
+    
+    
+    func updatePosition(position: Int){
+        var nowPlayingInfo = MPNowPlayingInfoCenter.default().nowPlayingInfo ?? Dictionary<String,Any>()
+        nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = position / 1000
+        MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
+    }
+    
+    func updateSwitchButtonEnable(isPreviousEnable: Bool?, isNextEnable: Bool?){
+        let commandCenter = MPRemoteCommandCenter.shared()
+        if (isPreviousEnable != nil){
+            commandCenter.previousTrackCommand.isEnabled = isPreviousEnable!
+        }
+        
+        if (isNextEnable != nil){
+            commandCenter.nextTrackCommand.isEnabled = isNextEnable!
+        }
+        
     }
     
 }

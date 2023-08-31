@@ -12,8 +12,8 @@ class NotificationConfigManager {
     private var config = MediaNotificationConfig()
     
     public init() {
-        config.imageWidth = 300.0
-        config.imageHeight = 300.0
+        config.imageWidth = 196.0
+        config.imageHeight = 196.0
     }
     
     func setConfig(config: MediaNotificationConfig){
