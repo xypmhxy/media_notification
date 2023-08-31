@@ -34,24 +34,24 @@ class MediaSessionUser {
 
         mediaSession.setCallback(object : MediaSessionCompat.Callback() {
 
-//            override fun onMediaButtonEvent(mediaButtonEvent: Intent?): Boolean {
-//                val keyEvent = if (Build.VERSION.SDK_INT >= 33) {
-//                    mediaButtonEvent?.getParcelableExtra<KeyEvent>(
-//                        Intent.EXTRA_KEY_EVENT,
-//                    )
-//                } else {
-//                    mediaButtonEvent?.getParcelableExtra(Intent.EXTRA_KEY_EVENT)
-//                }
-//                if (keyEvent?.action == KeyEvent.ACTION_UP) {
-//                    when (keyEvent.keyCode) {
-//                        KeyEvent.KEYCODE_MEDIA_PLAY -> mOnMediaButtonListener?.onClickPlay()
-//                        KeyEvent.KEYCODE_MEDIA_PAUSE -> mOnMediaButtonListener?.onClickPlay()
-//                        KeyEvent.KEYCODE_MEDIA_PREVIOUS -> mOnMediaButtonListener?.onClickPrevious()
-//                        KeyEvent.KEYCODE_MEDIA_NEXT -> mOnMediaButtonListener?.onClickNext()
-//                    }
-//                }
-//                return true
-//            }
+            override fun onMediaButtonEvent(mediaButtonEvent: Intent?): Boolean {
+                val keyEvent = if (Build.VERSION.SDK_INT >= 33) {
+                    mediaButtonEvent?.getParcelableExtra<KeyEvent>(
+                        Intent.EXTRA_KEY_EVENT,
+                    )
+                } else {
+                    mediaButtonEvent?.getParcelableExtra(Intent.EXTRA_KEY_EVENT)
+                }
+                if (keyEvent?.action == KeyEvent.ACTION_UP) {
+                    when (keyEvent.keyCode) {
+                        KeyEvent.KEYCODE_MEDIA_PLAY -> mOnMediaButtonListener?.onClickPlay()
+                        KeyEvent.KEYCODE_MEDIA_PAUSE -> mOnMediaButtonListener?.onClickPlay()
+                        KeyEvent.KEYCODE_MEDIA_PREVIOUS -> mOnMediaButtonListener?.onClickPrevious()
+                        KeyEvent.KEYCODE_MEDIA_NEXT -> mOnMediaButtonListener?.onClickNext()
+                    }
+                }
+                return true
+            }
 
             override fun onSkipToPrevious() {
                 mOnMediaButtonListener?.onClickPrevious()

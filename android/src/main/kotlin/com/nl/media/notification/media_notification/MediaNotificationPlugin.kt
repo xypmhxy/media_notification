@@ -9,8 +9,10 @@ import com.nl.media.notification.config.NotificationConfig
 import com.nl.media.notification.config.NotificationConfigManager
 import com.nl.media.notification.mediaSession.MediaSessionUser
 import com.nl.media.notification.mediaSession.OnMediaButtonListener
+import com.nl.media.notification.notification.NotificationAndroid12Shower
 import com.nl.media.notification.notification.NotificationCommandReceiver
 import com.nl.media.notification.notification.NotificationUIManager
+import com.nl.media.notification.utils.AppUtils
 import com.nl.media.notification.utils.ScreenUtil
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin
@@ -71,11 +73,12 @@ class MediaNotificationPlugin : FlutterPlugin, MethodCallHandler, OnMediaButtonL
                 }
                 val mediaNotificationInfo =
                     MediaNotificationInfo.fromMap(call.arguments as Map<String, Any>)
-                NotificationUIManager.get.updateNotification(mContext!!, mediaNotificationInfo)
-                NotificationUIManager.get.tryShowNotification(
-                    mContext!!, isPlaying = mediaNotificationInfo.isPlaying
-                        ?: false
-                )
+                updateNotification(mContext!!, mediaNotificationInfo)
+//                NotificationUIManager.get.updateNotification(mContext!!, mediaNotificationInfo)
+//                NotificationUIManager.get.tryShowNotification(
+//                    mContext!!, isPlaying = mediaNotificationInfo.isPlaying
+//                        ?: false
+//                )
                 result.success(true)
             }
 
@@ -86,11 +89,12 @@ class MediaNotificationPlugin : FlutterPlugin, MethodCallHandler, OnMediaButtonL
                 }
                 val params = call.arguments as Map<String, Any>
                 val isPlaying = params["isPlaying"] as? Boolean
-                NotificationUIManager.get.updateState(MediaNotificationInfo(isPlaying = isPlaying))
-                NotificationUIManager.get.tryShowNotification(
-                    mContext!!, isPlaying = isPlaying
-                        ?: false
-                )
+                updateNotification(mContext!!, MediaNotificationInfo(isPlaying = isPlaying))
+//                NotificationUIManager.get.updateState(MediaNotificationInfo(isPlaying = isPlaying))
+//                NotificationUIManager.get.tryShowNotification(
+//                    mContext!!, isPlaying = isPlaying
+//                        ?: false
+//                )
                 result.success(true)
             }
 
@@ -116,6 +120,13 @@ class MediaNotificationPlugin : FlutterPlugin, MethodCallHandler, OnMediaButtonL
         intentFilter.addAction(NotificationCommandReceiver.ACTION_NEXT)
         context.registerReceiver(mNotificationCommandReceiver, intentFilter)
         mNotificationCommandReceiver.setOnMediaButtonListener(this)
+    }
+
+    private fun updateNotification(context: Context, notificationInfo: MediaNotificationInfo) {
+        if (AppUtils.isAndroid33())
+            NotificationUIManager.get.updateNotification(context, notificationInfo)
+        else
+            NotificationAndroid12Shower.get.updateNotification(context, notificationInfo)
     }
 
     /**
